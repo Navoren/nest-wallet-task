@@ -33,3 +33,17 @@ export interface TransactionResponse {
   gasUsed?: string;
   effectiveGasPrice?: string;
 }
+
+export interface ExternalTransaction {
+  id: string;
+  from: string;
+  to: string;
+  amount: string;
+  blockNumber: number;
+  transactionHash: string;
+  timestamp: string;
+  status: 'confirmed';
+  gasUsed: string;
+  effectiveGasPrice: string;
+  source: 'external';
+}

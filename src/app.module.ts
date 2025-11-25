@@ -12,6 +12,7 @@ import { QueueModule } from './queue/queue.module';
 import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { BullBoardModule } from './helpers/bull-board/bull-board.module';
+import { BlockchainMonitorModule } from './blockchain-monitor/blockchain-monitor.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BullBoardModule } from './helpers/bull-board/bull-board.module';
     WalletModule,
     TransactionModule,
     BullBoardModule.forRoot(),
+    BlockchainMonitorModule,
   ],
 })
 export class AppModule implements OnModuleInit {
