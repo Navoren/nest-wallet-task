@@ -1,14 +1,14 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import Redis from 'ioredis';
+import { Injectable } from '@nestjs/common';
+import { Redis } from '@upstash/redis';
 
 @Injectable()
-export class RedisService implements OnModuleDestroy {
+export class RedisService {
   private readonly client: Redis;
 
   constructor() {
     this.client = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     });
   }
 
@@ -43,9 +43,5 @@ export class RedisService implements OnModuleDestroy {
 
   getClient(): Redis {
     return this.client;
-  }
-
-  async onModuleDestroy() {
-    await this.client.quit();
   }
 }
