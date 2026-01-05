@@ -14,22 +14,41 @@ import { TransactionModule } from './transaction/transaction.module';
 import { BullBoardModule } from './helpers/bull-board/bull-board.module';
 import { BlockchainMonitorModule } from './blockchain-monitor/blockchain-monitor.module';
 
+const isWorker = process.env.RUN_WORKER;
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // Redis + Bull is shared (API produces jobs, worker consumes)
     BullModule.forRoot({
       redis: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: Number(process.env.REDIS_PORT ?? 6379),
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
       },
     }),
+
     RedisModule,
     BlockchainModule,
-    QueueModule,
+
     WalletModule,
     TransactionModule,
-    BullBoardModule.forRoot(),
-    BlockchainMonitorModule,
+
+    // 🧠 ONLY API (Vercel)
+    ...(!isWorker
+      ? [
+          QueueModule, // producers only
+          BullBoardModule.forRoot(),
+        ]
+      : []),
+
+    // 🧠 ONLY WORKER (Railway)
+    ...(isWorker
+      ? [
+          QueueModule, // processors
+          BlockchainMonitorModule,
+        ]
+      : []),
   ],
 })
 export class AppModule implements OnModuleInit {
@@ -42,12 +61,16 @@ export class AppModule implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
+    // 🚨 Bull Board MUST NOT run on workers
+    if (isWorker) return;
+
     createBullBoard({
       queues: [new BullAdapter(this.transactionQueue)],
       serverAdapter: this.serverAdapter,
     });
   }
 
+  // Used by main.ts / Vercel adapter
   getServerAdapter(): ExpressAdapter {
     return this.serverAdapter;
   }
